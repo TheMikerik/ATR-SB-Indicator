@@ -1,13 +1,16 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © MikerikDev
-//@version=5
 
-indicator("Test indicator", overlay=true)
+//@version=5
+indicator("Sequence Checker", overlay=true)
+
 //----------------------------- Green/Red candles sequence
 bool _red_candle_seq = true
 bool _green_candle_seq = true
+bool _ignore_green = true
+bool _ignore_red = true
 
-inspect_bar( i ) =>
+is_green( i ) =>
     bool _result = true
     _calculation = open[i] - close[i]
     if _calculation > 0
@@ -15,15 +18,30 @@ inspect_bar( i ) =>
     else
         _result := false
 
+if bar_index > 4950
+    for i = 0 to 4 by 1
+        if is_green(i)
+            _green_candle_seq := false
+        if is_green(i) == false
+            _red_candle_seq := false
+        if _green_candle_seq[0]
+            for int j = 0 to 3 by 1
+                if not _green_candle_seq[j]
+                    _ignore_green := false
+                    break
+        if _red_candle_seq[0]
+            for int j = 0 to 3 by 1
+                if not _red_candle_seq[j]
+                    _ignore_red := false
+                    break
+else
+    _green_candle_seq := na
+    _red_candle_seq := na
+    _ignore_green := na
+    _ignore_red := na
 
-for i = 0 to 4 by 1
-    if inspect_bar(i)
-        _green_candle_seq := false
-    if inspect_bar(i) == false
-        _red_candle_seq := false
-
-plotshape(_red_candle_seq, location = location.belowbar, color=color.red, size = size.tiny)
-plotshape(_green_candle_seq, location = location.abovebar, color=color.green, size = size.tiny)
+plotshape(_red_candle_seq and not _ignore_red, location = location.belowbar, color=color.red, size = size.tiny)
+plotshape(_green_candle_seq and not _ignore_green, location = location.abovebar, color=color.green, size = size.tiny)
 
 
 
@@ -34,19 +52,17 @@ var _red_counter = 0
 if _green_candle_seq
     _green_counter += 1
     _final_greens = str.tostring(_green_counter)
-    label.new(bar_index, high, str.tostring(_final_greens), yloc = yloc.abovebar, style = label.style_none, textcolor = color.green)
-
+    if not _ignore_green
+        label.new(bar_index, high, str.tostring(_final_greens), yloc = yloc.abovebar, style = label.style_none, textcolor = color.green)
 if _red_candle_seq
     _red_counter += 1
     _final_reds = str.tostring(_red_counter)
-    label.new(bar_index, high, str.tostring(_final_reds), yloc = yloc.belowbar, style = label.style_none, textcolor = color.red)
+    if not _ignore_red
+        label.new(bar_index, high, str.tostring(_final_reds), yloc = yloc.belowbar, style = label.style_none, textcolor = color.red)
 
 
 
 //----------------------------- Huge sequence indicator
-
-// If theres 4 _green_candle_seq in row, i want to print big cross above the bar. How to do
-
 bool _huge_seq_green = false
 bool _huge_seq_red = false
 
