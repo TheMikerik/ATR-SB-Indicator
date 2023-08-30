@@ -1,56 +1,6 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © MikerikDev
-
 //@version=5
-
-// gcc = 0
-// rcc = 0
-// if close > open
-//     gcc := gcc + 1
-
-// if close < open
-//     rcc := rcc + 1
-
-
-// var downBar = input.bool(title = "Down Bars Showing", defval = true)
-// var upBar = input.bool(title = "Up Bars Showing", defval = true)
-
-
-// plotshape(gcc, text="up", location = location.abovebar, color = color.green, textcolor = color.green,  show_last = 5)
-// plotshape(rcc, text="down", location = location.belowbar, color = color.red, textcolor = color.red, show_last = 5)
-
-
-// hc = close > high[1]
-// lc = close < low[1]
-
-// if hc
-//     alert(message = "This bar closed UP: " + str.tostring(close), freq = alert.freq_all)
-// if lc
-//     alert(message = "This bar closed DOWN: " + str.tostring(close), freq = alert.freq_all)
-
-// plot(close + 20)
-
-// plot(close + 30, title = "close + 30 above", show_last = 10)
-// plot(close - 30, title = "close - 30 above", color=color.purple, show_last = 10)
-
-// ema1 = ta.ema(close, 50)
-// ema2 = ta.ema(close, 100)
-
-// maCrossOver = ta.crossover(ema1, ema2)
-// maCrossUnder = ta.crossunder(ema1, ema2)
-
-// plot(ema1, color=color.green)
-// plot(ema2, color=color.red)
-
-// bgcolor(maCrossOver ? color.green : na)
-// bgcolor(maCrossUnder ? color.red : na)
-
-// hc = high[1] + 20
-// lc = low[1] - 20
-
-
-
-//----------------------------------------------- My attempt to create some indicator ------------------------------------
 
 indicator("Test indicator", overlay=true)
 //----------------------------- Green/Red candles sequence
