@@ -9,3 +9,4 @@ larger crosses will begin to appear.
 ## Change log
 * 1.0 - First release
 * 1.1 - Removed small crosses beneath the larger ones. Also added numbers above small crosses (not really usefull yet)
+* 1.2 - Counter Fix Attempt (not working)
