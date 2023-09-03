@@ -3,16 +3,13 @@
 
 //@version=5
 indicator("Sequence Checker", overlay=true)
+int CANDLE_RANGE = 500
 
 //----------------------------- Green/Red candles sequence
 bool _red_candle_seq = true
 bool _green_candle_seq = true
 bool _ignore_green = true
 bool _ignore_red = true
-var red_array = array.new_int()
-var green_array = array.new_int() 
-int _green_counter = 1
-int _red_counter = 1
 
 is_green( i ) =>
     bool _result = true
@@ -22,7 +19,7 @@ is_green( i ) =>
     else
         _result := false
 
-if bar_index > 4950
+if bar_index > last_bar_index - CANDLE_RANGE
     for i = 0 to 4 by 1
         if is_green(i)
             _green_candle_seq := false
@@ -45,36 +42,24 @@ else
     _ignore_red := na
 
 plotshape(_red_candle_seq and not _ignore_red, location = location.belowbar, color=color.red, size = size.tiny)
-if _red_candle_seq and not _ignore_red
-    _red_counter += 1
-    red_array.push(bar_index)
 plotshape(_green_candle_seq and not _ignore_green, location = location.abovebar, color=color.green, size = size.tiny)
-if _green_candle_seq and not _ignore_green
-    _green_counter += 1
-    green_array.push(bar_index)
+
 
 
 //----------------------------- Green/Red candles counter
-if bar_index == 4999
-    while array.size(green_array) != 0
-        current = array.last(green_array)
-        array.pop(green_array)
+var _green_counter = 0
+var _red_counter = 0
 
-        label.new(bar_index[current], high, str.tostring(_green_counter), yloc = yloc.abovebar, style = label.style_none, textcolor = color.green)
-        _green_counter += 1
-
-// if bar_index > 4950
-//     if _green_candle_seq
-//         green_array.push(bar_index)
-//         // _final_greens = str.tostring(_green_counter)
-//         // if not _ignore_green
-//         //     label.new(bar_index, high, str.tostring(_final_greens), yloc = yloc.abovebar, style = label.style_none, textcolor = color.green)
-//     if _red_candle_seq
-//         red_array.push(bar_index)
-//         // _final_reds = str.tostring(_red_counter)
-//         // if not _ignore_red
-//         //     label.new(bar_index, high, str.tostring(_final_reds), yloc = yloc.belowbar, style = label.style_none, textcolor = color.red)
-
+if _green_candle_seq
+    _green_counter += 1
+    _final_greens = str.tostring(_green_counter)
+    if not _ignore_green
+        label.new(bar_index, high, str.tostring(_final_greens), yloc = yloc.abovebar, style = label.style_none, textcolor = color.green)
+if _red_candle_seq
+    _red_counter += 1
+    _final_reds = str.tostring(_red_counter)
+    if not _ignore_red
+        label.new(bar_index, high, str.tostring(_final_reds), yloc = yloc.belowbar, style = label.style_none, textcolor = color.red)
 
 
 
@@ -89,7 +74,6 @@ if _green_candle_seq[0]
             break
         else
             _huge_seq_green := true
-
 
 if _red_candle_seq[0]
     for int i = 0 to 3 by 1
