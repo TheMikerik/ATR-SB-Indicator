@@ -2,7 +2,7 @@
 // © MikerikDev
 
 //@version=5
-indicator("SB Indicator", overlay = true)
+indicator("ATR-SB Indicator", overlay = true)
 
 
 //--------------- INITIAL VARIABLES
