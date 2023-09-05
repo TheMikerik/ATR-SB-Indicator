@@ -3,55 +3,82 @@
 
 //@version=5
 indicator("ATR-SB Indicator", overlay = true)
+//Last working version: 148
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
+// ~~ TIPS
+TIP_risk       = "Possibility to manage the risk you are willing to take. Generally speaking, the higher the numbers you select the less risky the positions will become. If you want to adjust the risk, change just the RISK. I do not recommend changing ATR if you don't know what it does. Default values are set to RISK 6 and ATR 10."
+TIP_trendlines = "You can either display or hide the thick trendline above the filled area. The trendline is bullish if it is below the price action. In another case, if the trendline is above the price action, it is bearish."
+TIP_sb_candle  = "Sell buy candle is located in the crossover of this indicator's trendline and price action. This option just highlights that candle. This is also the location where the sell/buy signals appear."
+TIP_filling    = "This shows the filled area in between a price action and a highlighted trendline."
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-//--------------- INITIAL VARIABLES
-_risk = input(defval = 1, title = "Risk (higher value = less risk)")
-_atr = ta.atr(10)
-_modified_atr = _risk * _atr
+// ~~ INPUTS
+RISK = input.int(defval = 6, title = "Risk", minval = 1, group = "Risk Management", inline = "risk mngmn")
+ATR  = input.int (defval = 10, title = "ATR", minval = 1, group = "Risk Management", inline = "risk mngmn", tooltip = TIP_risk)
+
+TRENDLINES  = input.bool(defval = true, title="Trend Signals", inline = "trend", group = "Trendlines")
+TREND_ABOVE = input.color(defval = color.green, title="", inline = "trend", group = "Trendlines")
+TREND_BELOW = input.color(defval = color.red, title="", inline = "trend", group = "Trendlines", tooltip = TIP_trendlines)
+
+SB_CANDLE       = input.bool( defval = true, title = "SB candle", inline = "sb", group = "Sell/Buy Candle")
+SB_CANDLE_COLOR = input.color(defval = color.white, title = "", inline = "sb", group = "Sell/Buy Candle", tooltip = TIP_sb_candle)
+
+FILLING    = input.bool(defval = true, title="", inline = "fill", group = "Trend Coloring")
+FILL_ABOVE = input.color(defval = color.green, title="Bullish", inline = "fill", group = "Trend Coloring")
+FILL_BELOW = input.color(defval = color.red, title="Bearish", inline = "fill", group = "Trend Coloring", tooltip = TIP_filling)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// ~~ INITIAL VARIABLES
+_atr = ta.atr(ATR)
+_modified_atr = RISK * _atr
 _src = close
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-
-//--------------- Functions that are being used
+// ~~ FUNCTIONS
 main_logic( _input ) =>
-    result = 0.0
+    _result = 0.0
 
     if close > _input and close[1] > _input
-        result := math.max(_input, close - _modified_atr)
+        _result := math.max(_input, close - _modified_atr)
     else if close < _input and close[1] < _input
-        result := math.min(_input, close + _modified_atr)
+        _result := math.min(_input, close + _modified_atr)
     else if close > _input
-        result := close - _modified_atr
+        _result := close - _modified_atr
     else
-        result := close + _modified_atr
-
-
+        _result := close + _modified_atr
 
 direction_logic( _input ) =>
     _dir = 0
-    if   close[1] < _input and close > _input
+    if      close[1] < _input and close > _input
         _dir := 1
     else if close[1] > _input and close < _input
         _dir := -1
+    else
+        _dir := 0
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-//--------------- Indicator logic
-_xATR = 0.0
-_xATR := main_logic(_xATR[1])
+// ~~ INDICATOR LOGIC
+_xATR       = 0.0
+_xATR       := main_logic(_xATR[1])
+_direction  = direction_logic(_xATR[1])
+_price      = ta.ema(close,1)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-_direction = 0
-_direction := direction_logic(_xATR[1])
+// ~~ PLOTS, SHAPES AND FILLS
+barcolor( (_direction == 1 or _direction == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
+
+_atr_color = not TRENDLINES ? na : _xATR > _price ? TREND_BELOW : TREND_ABOVE 
+
+_xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
+_price_plot = plot(_price, color = color.rgb(0, 0, 0, 100), linewidth = 1)
 
 
-ema   = ta.ema(close,1)
-above = ta.crossover(ema, _xATR)
-below = ta.crossover(_xATR, ema)
 
-barcolor( _direction == 1 or _direction == -1 ? color.yellow : na )
-plot(_xATR, color = color.white, linewidth = 2)
-plot(ema, color = color.blue, linewidth = 1)
+fill(_xATR_plot, _price_plot, not FILLING ? na : _xATR > _price ? color.new(FILL_BELOW, 75) : color.new(FILL_ABOVE, 75))
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-
-//--------------- TEST FUNCTIONS
-
-plotshape(_direction == 1, location = location.belowbar, style = shape.labelup, color = color.green, size = size.normal, text = "BUY", textcolor = color.black)
-plotshape(_direction == -1, location = location.abovebar, style = shape.labeldown, color = color.red, size = size.normal, text = "SELL", textcolor = color.black)
+// ~~ BUY / SELL SIGNALS
+plotshape(_direction ==  1, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
+plotshape(_direction == -1, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
