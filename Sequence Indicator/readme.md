@@ -11,3 +11,4 @@ larger crosses will begin to appear.
 * 1.1 - Removed small crosses beneath the larger ones. Also added numbers above small crosses (not really usefull yet)
 * 1.2 - Counter Fix Attempt (not working)
 * 1.3 - Counter starting from the rightmost is not possible - whats once printed, cannot be reprinted
+* 1.4 - Added previous images folder
