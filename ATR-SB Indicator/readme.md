@@ -9,5 +9,11 @@ ATR-Sell/Buy Indicator which works based on calculating the "trend line" from ea
 * 1.1 - Readme edited, Title of the indicator changed
 * 1.2 - Added filling, trendline edited, UI and tips added
 
+## To Do List
+* Make trendline transparent on SB Candle
+* Add option to diable showing sell/buy labels
+* Add formula to calculate profit of each signal
+* Merge it with Consolidation Zones indicator
+
 ## Credits
 This indicator is inspired by "UT Bot" indicator. My code basically works on it, but I created my version of it. If you want to get some more information about this indicator click [here](https://theforexgeek.com/ut-bot-alerts-indicator/)
