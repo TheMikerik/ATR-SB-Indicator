@@ -2,8 +2,8 @@
 // © MikerikDev
 
 //@version=5
-indicator("ATR-SB Indicator", overlay = true)
-//Last working version: 148
+  indicator("ATR-SB Algo", overlay = true)
+//Last working version: 159
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
@@ -11,6 +11,7 @@ TIP_risk       = "Possibility to manage the risk you are willing to take. Genera
 TIP_trendlines = "You can either display or hide the thick trendline above the filled area. The trendline is bullish if it is below the price action. In another case, if the trendline is above the price action, it is bearish."
 TIP_sb_candle  = "Sell buy candle is located in the crossover of this indicator's trendline and price action. This option just highlights that candle. This is also the location where the sell/buy signals appear."
 TIP_filling    = "This shows the filled area in between a price action and a highlighted trendline."
+TIP_sb_label   = "Option to display or hide SELL/BUY labels"
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INPUTS
@@ -27,12 +28,15 @@ SB_CANDLE_COLOR = input.color(defval = color.white, title = "", inline = "sb", g
 FILLING    = input.bool(defval = true, title="", inline = "fill", group = "Trend Coloring")
 FILL_ABOVE = input.color(defval = color.green, title="Bullish", inline = "fill", group = "Trend Coloring")
 FILL_BELOW = input.color(defval = color.red, title="Bearish", inline = "fill", group = "Trend Coloring", tooltip = TIP_filling)
+
+SB_LABEL   = input.bool(defval = true, title = "Show labels", group = "Labels", tooltip = TIP_sb_label)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INITIAL VARIABLES
 _atr = ta.atr(ATR)
 _modified_atr = RISK * _atr
 _src = close
+_invisible = color.rgb(0, 0, 0, 100)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ FUNCTIONS
@@ -68,10 +72,10 @@ _price      = ta.ema(close,1)
 // ~~ PLOTS, SHAPES AND FILLS
 barcolor( (_direction == 1 or _direction == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
 
-_atr_color = not TRENDLINES ? na : _xATR > _price ? TREND_BELOW : TREND_ABOVE 
+_atr_color = not TRENDLINES ? na : _direction == 1 or _direction == -1 ? _invisible : _xATR > _price ? TREND_BELOW : TREND_ABOVE
 
 _xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
-_price_plot = plot(_price, color = color.rgb(0, 0, 0, 100), linewidth = 1)
+_price_plot = plot(_price, color = _invisible, linewidth = 1)
 
 
 
@@ -79,6 +83,6 @@ fill(_xATR_plot, _price_plot, not FILLING ? na : _xATR > _price ? color.new(FILL
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ BUY / SELL SIGNALS
-plotshape(_direction ==  1, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
-plotshape(_direction == -1, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
+plotshape(_direction ==  1 and SB_LABEL, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
+plotshape(_direction == -1 and SB_LABEL, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}

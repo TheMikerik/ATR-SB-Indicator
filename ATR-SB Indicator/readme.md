@@ -8,10 +8,9 @@ ATR-Sell/Buy Indicator which works based on calculating the "trend line" from ea
 * 1.0 - Initial push
 * 1.1 - Readme edited, Title of the indicator changed
 * 1.2 - Added filling, trendline edited, UI and tips added
+* 1.3 - Trendline invisible while crossing SB candle, added option to show or hide SB labels
 
 ## To Do List
-* Make trendline transparent on SB Candle
-* Add option to diable showing sell/buy labels
 * Add formula to calculate profit of each signal
 * Merge it with Consolidation Zones indicator
 
