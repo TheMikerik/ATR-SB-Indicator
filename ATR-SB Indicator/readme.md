@@ -11,6 +11,7 @@ ATR-Sell/Buy Indicator which works based on calculating the "trend line" from ea
 * 1.3 - Trendline invisible while crossing SB candle, added option to show or hide SB labels
 * 1.4 - Stoploss attempt - not working yet
 * 1.5 - Stoploss fixed - only one signal per each SB signal
+* 1.6 - Stoploss appearance changed
 
 ## To Do List
 * Add formula to calculate profit of each signal
