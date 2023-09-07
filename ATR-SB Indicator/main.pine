@@ -3,7 +3,7 @@
 
 //@version=5
   indicator("ATR-SB Algo", overlay = true)
-//Last working version: 185
+//Last working version: 193
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
@@ -61,37 +61,35 @@ direction_logic( _input ) =>
     else
         _dir := 0
 
-trend_break( _xATR, _price, _direction ) =>
+trend_break( _xATR, _price, _trigger ) =>
     _stop = false
-    if _direction == 1 or _direction == -1
+    if _trigger == 1 or _trigger == -1
         _stop := false
     else if high > _xATR and _price < _xATR
         _stop := true
     else if low < _xATR and _price > _xATR
         _stop := true
-
-// sl_triggered( _sl_active, _direction, _stop_loss ) =>       //~~~~~~~~~~~~~~~~~ Not Working
-//     bool _result = _sl_active
-//     if _stop_loss
-//         _result := false
-//     if _direction == 1 or _direction == -1
-//         _result := true
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INDICATOR LOGIC
 _xATR       = 0.0
-_sl_active  = true
 _xATR       := main_logic(_xATR[1])
-_direction  = direction_logic(_xATR[1])
+_trigger  = direction_logic(_xATR[1])
 _price      = ta.ema(close,1)
-_stop_loss  = trend_break(_xATR[1], _price, _direction)
-// _sl_active  := sl_triggered(_sl_active, _direction, _stop_loss)
+_stop_loss  = trend_break(_xATR[1], _price, _trigger)
+
+var _sl_counter = 0
+
+if _stop_loss
+    _sl_counter += 1
+else if _trigger
+    _sl_counter := 0
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ PLOTS, SHAPES AND FILLS
-barcolor( (_direction == 1 or _direction == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
+barcolor( (_trigger == 1 or _trigger == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
 
-_atr_color = not TRENDLINES ? na : _direction == 1 or _direction == -1 ? _invisible : _xATR > _price ? TREND_BELOW : TREND_ABOVE
+_atr_color = not TRENDLINES ? na : _trigger == 1 or _trigger == -1 ? _invisible : _xATR > _price ? TREND_BELOW : TREND_ABOVE
 
 _xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
 _price_plot = plot(_price, color = _invisible, linewidth = 1)
@@ -102,7 +100,7 @@ fill(_xATR_plot, _price_plot, not FILLING ? na : _xATR > _price ? color.new(FILL
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ BUY / SELL SIGNALS
-plotshape(_direction ==  1 and SB_LABEL, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
-plotshape(_direction == -1 and SB_LABEL, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
-plotshape( _stop_loss , location = location.abovebar, style = shape.diamond, color = color.blue, size = size.normal, text = "Stop Loss")
+plotshape(_trigger ==  1 and SB_LABEL, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
+plotshape(_trigger == -1 and SB_LABEL, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
+plotshape( _sl_counter == 1 and _stop_loss , location = location.abovebar, style = shape.diamond, color = color.blue, size = size.normal, text = "Stop Loss")
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
