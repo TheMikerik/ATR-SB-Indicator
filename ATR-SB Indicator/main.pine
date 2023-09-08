@@ -3,7 +3,7 @@
 
 //@version=5
   indicator("ATR-SB Algo", overlay = true)
-//Last published version: 364
+//Last published version: 373
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
@@ -77,8 +77,6 @@ trend_break( _xATR, _price, _trigger ) =>
 //         _result := close - _pnl_open_price
 //     else
 //         _result := na
-
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INDICATOR LOGIC
@@ -88,13 +86,11 @@ _trigger    = direction_logic(_xATR[1])
 _price      = ta.ema(close,1)
 _stop_loss  = trend_break(_xATR[1], _price, _trigger)
 
-_trend_above = _xATR < _price ? true : false
-_trend_below = _xATR < _price ? false : true
+_trend_below_price = _xATR < _price ? true : false
+_trend_above_price = _xATR < _price ? false : true
 
 var _sl_counter = 0
-_sl_counter := _stop_loss ? _sl_counter + 1 : _trigger ? -1 : _sl_counter
-
-
+_sl_counter := _stop_loss ? _sl_counter + 1 : _trigger ? 0 : _sl_counter
 
 var bool pos_chang = false
 if _trigger == 1 or _trigger == -1
@@ -113,16 +109,17 @@ if _sl_counter == 1 and _stop_loss and print
 
     final := true
 
-    if _trend_above
-        label.new(bar_index, high, "STOP LOSS", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = color.red, color = color.red)
-    else 
-        label.new(bar_index, high, "STOP LOSS", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = color.green, color = color.green)
+    // if _trend_below_price
+    //     label.new(bar_index, high, "STOP LOSS", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = color.red, color = color.red)
+    // else 
+    //     label.new(bar_index, high, "STOP LOSS", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = color.green, color = color.green)
 else if not print and not pos_chang
+    final := false
     first := false
 else if pos_chang
     if print
         final := true
-        if _trend_above
+        if _trend_below_price
             label.new(bar_index, high, "TREND SWAP", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = color.green, color = color.green)
         else 
             label.new(bar_index, high, "TREND SWAP", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = color.red, color = color.red)
@@ -130,7 +127,6 @@ else if pos_chang
         _sls := false
         first := true
         print := true
-        _sl_counter := 0
 else
     final := false
 
@@ -152,7 +148,7 @@ _pnl_open_price := _trigger == 1 or _trigger == -1 ? open : _pnl_open_price
 // ~~ PLOTS, SHAPES AND FILLS
 barcolor( (_trigger == 1 or _trigger == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
 
-_atr_color = not TRENDLINES ? na : _trigger == 1 or _trigger == -1 ? _invisible : _trend_below ? SHOW_BELOW : SHOW_ABOVE
+_atr_color = not TRENDLINES ? na : _trigger == 1 or _trigger == -1 ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
 
 _xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
 _price_plot = plot(_price, color = _invisible, linewidth = 1)
@@ -163,7 +159,6 @@ fill(_xATR_plot, _price_plot, not FILLING ? na : _xATR > _price ? color.new(FILL
 // ~~ BUY / SELL SIGNALS
 plotshape(_trigger ==  1 and SB_LABEL, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
 plotshape(_trigger == -1 and SB_LABEL, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
-plotshape( _sl_counter == 1 and _stop_loss and _trend_above and SL_LABEL, location = location.abovebar,  style = shape.triangledown, color = color.silver , size = size.tiny, text = "Stop Loss", textcolor = color.silver)
-plotshape( _sl_counter == 1 and _stop_loss and _trend_below and SL_LABEL, location = location.belowbar,  style = shape.triangleup,   color = color.silver , size = size.tiny, text = "Stop Loss", textcolor = color.silver)
-//plotshape( final , location = location.abovebar,  style = shape.triangledown,   color = color.purple , size = size.huge, text = "SL", textcolor = color.silver)
+plotshape( _sl_counter == 1 and _stop_loss and _trend_below_price and SL_LABEL, location = location.belowbar,  style = shape.xcross, color = color.red , size = size.tiny, text = "Stop Loss", textcolor = color.red)
+plotshape( _sl_counter == 1 and _stop_loss and _trend_above_price and SL_LABEL, location = location.abovebar,  style = shape.xcross,   color = color.green , size = size.tiny, text = "Stop Loss", textcolor = color.green)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}

@@ -12,11 +12,12 @@ ATR-Sell/Buy Indicator which works based on calculating the "trend line" from ea
 * 1.4 - Stoploss attempt - not working yet
 * 1.5 - Stoploss fixed - only one signal per each SB signal
 * 1.6 - Stoploss appearance changed
+* 1.7 - Stoploss fixed
 
 ## To Do List
-* Add formula to calculate profit of each signal
+* Add formula to calculate profit of each signal --- probably no
 * Merge it with Consolidation Zones indicator
-* Fix wrong SL
+* Disable showing trend when SL has been triggered
 
 ## Credits
 This indicator is inspired by "UT Bot" indicator. My code basically works on it, but I created my version of it. If you want to get some more information about this indicator click [here](https://theforexgeek.com/ut-bot-alerts-indicator/)
