@@ -3,22 +3,21 @@
 
 //@version=5
   indicator("ATR-SB Algo", overlay = true)
-//Last published version: 373
+//Last published version: 385
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
-TIP_risk       = "Possibility to manage the risk you are willing to take. Generally speaking, the higher the numbers you select the less risky the positions will become. If you want to adjust the risk, change just the RISK. I do not recommend changing ATR if you don't know what it does. Default values are set to RISK 6 and ATR 10."
+TIP_risk       = "Possibility to manage the risk you are willing to take. Generally speaking of RISK, the higher is the number you select the less risky the positions will become. For ATR it is exact opposite. The lower is the number you select the less risky the position will become. Default values are set to RISK 10 and ATR 10. Feel free to experiment with it :)"
 TIP_trendlines = "You can either display or hide the thick trendline above the filled area. The trendline is bullish if it is below the price action. In another case, if the trendline is above the price action, it is bearish."
 TIP_sb_candle  = "Sell buy candle is located in the crossover of this indicator's trendline and price action. This option just highlights that candle. This is also the location where the sell/buy signals appear."
 TIP_filling    = "This shows the filled area in between a price action and a highlighted trendline."
-TIP_sb_label   = "Option to display or hide SELL/BUY labels"
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INPUTS
-RISK = input.int(defval = 6, title = "Risk", minval = 1, group = "Risk Management", inline = "risk mngmn")
+RISK = input.int(defval = 10, title = "Risk", minval = 1, group = "Risk Management", inline = "risk mngmn")
 ATR  = input.int (defval = 10, title = "ATR", minval = 1, group = "Risk Management", inline = "risk mngmn", tooltip = TIP_risk)
 
-TRENDLINES  = input.bool(defval = true, title="Trend Signals", inline = "trend", group = "Trendlines")
+TRENDLINES = input.bool(defval = true, title="Trend Signals", inline = "trend", group = "Trendlines")
 SHOW_ABOVE = input.color(defval = color.green, title="", inline = "trend", group = "Trendlines")
 SHOW_BELOW = input.color(defval = color.red, title="", inline = "trend", group = "Trendlines", tooltip = TIP_trendlines)
 
@@ -29,8 +28,9 @@ FILLING    = input.bool(defval = true, title="", inline = "fill", group = "Trend
 FILL_ABOVE = input.color(defval = color.green, title="Bullish", inline = "fill", group = "Trend Coloring")
 FILL_BELOW = input.color(defval = color.red, title="Bearish", inline = "fill", group = "Trend Coloring", tooltip = TIP_filling)
 
-SB_LABEL   = input.bool(defval = true, title = "Show labels"   , group = "Labels", tooltip = TIP_sb_label)
-SL_LABEL   = input.bool(defval = true, title = "Show stop loss", group = "Labels")
+SB_LABEL   = input.bool(defval = true, title = "Show labels"    , group = "Labels")
+SL_LABEL   = input.bool(defval = true, title = "Show stop loss" , group = "Labels")
+TREND_SWAP = input.bool(defval = true, title = "Show trend swap", group = "Labels")
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INITIAL VARIABLES
@@ -70,13 +70,6 @@ trend_break( _xATR, _price, _trigger ) =>
         _stop := true
     else if low < _xATR and _price > _xATR
         _stop := true
-
-// pnl_calculator( _end_trigger, _end_sl, _sl_counter, _pnl_open_price ) =>
-//     float _result = 0
-//     if ((_end_trigger == 1 or _end_trigger == -1) and _sl_counter == 0) or (_end_sl and _sl_counter == 1)
-//         _result := close - _pnl_open_price
-//     else
-//         _result := na
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INDICATOR LOGIC
@@ -91,7 +84,9 @@ _trend_above_price = _xATR < _price ? false : true
 
 var _sl_counter = 0
 _sl_counter := _stop_loss ? _sl_counter + 1 : _trigger ? 0 : _sl_counter
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
+// ~~ STOP LOSS, TREND SWAP
 var bool pos_chang = false
 if _trigger == 1 or _trigger == -1
     pos_chang := true
@@ -106,23 +101,17 @@ var bool print = true
 if _sl_counter == 1 and _stop_loss and print
     print := false
     _sls := true
-
     final := true
-
-    // if _trend_below_price
-    //     label.new(bar_index, high, "STOP LOSS", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = color.red, color = color.red)
-    // else 
-    //     label.new(bar_index, high, "STOP LOSS", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = color.green, color = color.green)
 else if not print and not pos_chang
     final := false
     first := false
 else if pos_chang
     if print
         final := true
-        if _trend_below_price
-            label.new(bar_index, high, "TREND SWAP", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = color.green, color = color.green)
-        else 
-            label.new(bar_index, high, "TREND SWAP", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = color.red, color = color.red)
+        if _trend_below_price and TREND_SWAP
+            label.new(bar_index, high, "TREND SWAP", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_ABOVE, color = SHOW_ABOVE)
+        else if TREND_SWAP
+            label.new(bar_index, high, "TREND SWAP", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_BELOW, color = SHOW_BELOW)
     else
         _sls := false
         first := true
@@ -130,35 +119,23 @@ else if pos_chang
 else
     final := false
 
-var float _pnl_open_price = 0
-_pnl_open_price := _trigger == 1 or _trigger == -1 ? open : _pnl_open_price
-
-// _pnl = pnl_calculator(_trigger, _stop_loss, _sl_counter, _pnl_open_price)
-
-// var bool sl_trigger = false
-// if _sl_counter == 1 and not na(_pnl)
-//     idk = str.tostring(_pnl)
-//     label.new(bar_index, high, idk, yloc = yloc.belowbar, style = label.style_none, textcolor = color.white)
-//     sl_trigger := true
-// else if _trigger == 1 or _trigger == -1 and _sl_counter == 0
-//     idk = str.tostring(_pnl)
-//     label.new(bar_index, high, idk, yloc = yloc.belowbar, style = label.style_none, textcolor = color.white)
+_invisible_filling = not print and not pos_chang
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ PLOTS, SHAPES AND FILLS
 barcolor( (_trigger == 1 or _trigger == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
 
-_atr_color = not TRENDLINES ? na : _trigger == 1 or _trigger == -1 ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
+_atr_color = not TRENDLINES ? na : _trigger == 1 or _trigger == -1 ? _invisible : _invisible_filling ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
 
 _xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
 _price_plot = plot(_price, color = _invisible, linewidth = 1)
 
-fill(_xATR_plot, _price_plot, not FILLING ? na : _xATR > _price ? color.new(FILL_BELOW, 75) : color.new(FILL_ABOVE, 75))
+fill(_xATR_plot, _price_plot, not FILLING ? na : _invisible_filling ? _invisible : _xATR > _price ? color.new(FILL_BELOW, 75) : color.new(FILL_ABOVE, 75))
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ BUY / SELL SIGNALS
 plotshape(_trigger ==  1 and SB_LABEL, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
 plotshape(_trigger == -1 and SB_LABEL, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
-plotshape( _sl_counter == 1 and _stop_loss and _trend_below_price and SL_LABEL, location = location.belowbar,  style = shape.xcross, color = color.red , size = size.tiny, text = "Stop Loss", textcolor = color.red)
-plotshape( _sl_counter == 1 and _stop_loss and _trend_above_price and SL_LABEL, location = location.abovebar,  style = shape.xcross,   color = color.green , size = size.tiny, text = "Stop Loss", textcolor = color.green)
+plotshape( _sl_counter == 1 and _stop_loss and _trend_below_price and SL_LABEL, location = location.belowbar,  style = shape.xcross, color = SHOW_BELOW , size = size.tiny, text = "Stop Loss", textcolor = SHOW_BELOW)
+plotshape( _sl_counter == 1 and _stop_loss and _trend_above_price and SL_LABEL, location = location.abovebar,  style = shape.xcross,   color = SHOW_ABOVE , size = size.tiny, text = "Stop Loss", textcolor = SHOW_ABOVE)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}

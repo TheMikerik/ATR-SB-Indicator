@@ -1,5 +1,5 @@
-# ATR-SB Indicator
-ATR-Sell/Buy Indicator which works based on calculating the "trend line" from each candle's close price, ATR (average true range) and complex formula connected to it. Sell/Buy signal starts to occur when the trend line crosses with each candle close price.
+# ATR-SB AI-Algo
+ATR-SB AI-Algo is an indicator which works based on calculating the "trend line" from each candle's close price (EMA1) and ATR (average true range). This algorithm starts displaying sell/buy signals based on complex mathematical formulas.
 
 ## Indicator Visualization
 ![Showcase](img.png)
@@ -13,11 +13,14 @@ ATR-Sell/Buy Indicator which works based on calculating the "trend line" from ea
 * 1.5 - Stoploss fixed - only one signal per each SB signal
 * 1.6 - Stoploss appearance changed
 * 1.7 - Stoploss fixed
+* 2.0 - Indicator mostly done, first public release, all works without bugs (hopefully)
+
+## Released Versions
+* 2.0 - First public release
 
 ## To Do List
-* Add formula to calculate profit of each signal --- probably no
 * Merge it with Consolidation Zones indicator
-* Disable showing trend when SL has been triggered
+* Make strategy for this indicator
 
 ## Credits
 This indicator is inspired by "UT Bot" indicator. My code basically works on it, but I created my version of it. If you want to get some more information about this indicator click [here](https://theforexgeek.com/ut-bot-alerts-indicator/)
