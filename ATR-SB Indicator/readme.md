@@ -16,6 +16,7 @@ ATR-Sell/Buy Indicator which works based on calculating the "trend line" from ea
 ## To Do List
 * Add formula to calculate profit of each signal
 * Merge it with Consolidation Zones indicator
+* Fix wrong SL
 
 ## Credits
 This indicator is inspired by "UT Bot" indicator. My code basically works on it, but I created my version of it. If you want to get some more information about this indicator click [here](https://theforexgeek.com/ut-bot-alerts-indicator/)
