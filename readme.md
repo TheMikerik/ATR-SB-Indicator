@@ -1,5 +1,5 @@
 # ATR-SB AI-Algo
-ATR-SB AI-Algo is an indicator which works based on calculating the "trend line" from each candle's close price (EMA1) and ATR (average true range). This algorithm starts displaying sell/buy signals based on complex mathematical formulas.
+*ATR-SB AI-Algo is an indicator which works based on calculating the "trend line" from each candle's close price (EMA1) and ATR (average true range). This algorithm starts displaying sell/buy signals based on complex mathematical formulas.
 
 * Indicator is running on [this exact chart](https://www.tradingview.com/chart/dAfm1Hmv/?symbol=BINANCE%3ABTCUSD)
 
@@ -16,6 +16,7 @@ ATR-SB AI-Algo is an indicator which works based on calculating the "trend line"
 * 1.6 - Stoploss appearance changed
 * 1.7 - Stoploss fixed
 * 2.0 - Indicator mostly done, first public release, all works without bugs (hopefully)
+* 2.1 - The whole folder adjusted only for this very indicator
 
 ## Released Versions
 * 2.0 - First public release
