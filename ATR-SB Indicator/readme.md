@@ -2,7 +2,7 @@
 ATR-SB AI-Algo is an indicator which works based on calculating the "trend line" from each candle's close price (EMA1) and ATR (average true range). This algorithm starts displaying sell/buy signals based on complex mathematical formulas.
 
 ## Indicator Visualization
-![Showcase](img.png)
+![Showcase](img2.0.png)
 
 ## Change log
 * 1.0 - Initial push
