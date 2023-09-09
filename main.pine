@@ -3,7 +3,7 @@
 
 //@version=5
   indicator("ATR-SB Algo", overlay = true)
-//Last published version: 385
+//Last published version: 387
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
