@@ -3,7 +3,7 @@
 
 //@version=5
   indicator("ATR-SB Algo", overlay = true)
-//Last published version: 385
+//Last published version: 388
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
@@ -14,7 +14,7 @@ TIP_filling    = "This shows the filled area in between a price action and a hig
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ INPUTS
-RISK = input.int(defval = 10, title = "Risk", minval = 1, group = "Risk Management", inline = "risk mngmn")
+RISK = input.int(defval = 6, title = "Risk", minval = 1, group = "Risk Management", inline = "risk mngmn")
 ATR  = input.int (defval = 10, title = "ATR", minval = 1, group = "Risk Management", inline = "risk mngmn", tooltip = TIP_risk)
 
 TRENDLINES = input.bool(defval = true, title="Trend Signals", inline = "trend", group = "Trendlines")
@@ -87,39 +87,39 @@ _sl_counter := _stop_loss ? _sl_counter + 1 : _trigger ? 0 : _sl_counter
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ STOP LOSS, TREND SWAP
-var bool pos_chang = false
+var bool _trend_swap = false
 if _trigger == 1 or _trigger == -1
-    pos_chang := true
+    _trend_swap := true
 else
-    pos_chang := false
+    _trend_swap := false
 
-var bool _sls = false
-var bool final = false
-var bool first = true
-var bool print = true
+var bool _sl_triggered   = false
+var bool _trigger_candle = false
+var bool _first_candle   = true
+var bool _print_cross    = true
 
-if _sl_counter == 1 and _stop_loss and print
-    print := false
-    _sls := true
-    final := true
-else if not print and not pos_chang
-    final := false
-    first := false
-else if pos_chang
-    if print
-        final := true
+if _sl_counter == 1 and _stop_loss and _print_cross
+    _print_cross := false
+    _sl_triggered := true
+    _trigger_candle := true
+else if not _print_cross and not _trend_swap
+    _trigger_candle := false
+    _first_candle := false
+else if _trend_swap
+    if _print_cross
+        _trigger_candle := true
         if _trend_below_price and TREND_SWAP
             label.new(bar_index, high, "TREND SWAP", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_ABOVE, color = SHOW_ABOVE)
         else if TREND_SWAP
             label.new(bar_index, high, "TREND SWAP", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_BELOW, color = SHOW_BELOW)
     else
-        _sls := false
-        first := true
-        print := true
+        _sl_triggered := false
+        _first_candle := true
+        _print_cross := true
 else
-    final := false
+    _trigger_candle := false
 
-_invisible_filling = not print and not pos_chang
+_invisible_filling = not _print_cross and not _trend_swap
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ PLOTS, SHAPES AND FILLS

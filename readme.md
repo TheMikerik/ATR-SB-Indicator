@@ -17,6 +17,7 @@
 * 1.7 - Stoploss fixed
 * 2.0 - Indicator mostly done, first public release, all works without bugs (hopefully)
 * 2.1 - The whole folder adjusted only for this very indicator
+* 2.1.1 - Change of some variable names
 
 ## Released Versions
 * 2.0 - First public release
