@@ -1,0 +1,36 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © MikerikDev
+
+//@version=5
+strategy("ATR-SB Strategy", overlay=true, margin_long=100, margin_short=100)
+
+long_signal = request.security("ATR-SB Algo", "1h", buy)
+short_signal = request.security("ATR-SB Algo", "1h", sell)
+sl_short = request.security("ATR-SB Algo", "1h", sl_short)
+sl_long = request.security("ATR-SB Algo", "1h", sl_long)
+
+
+// Signal = buy ? 1 : sell ? -1 : 0
+// plot(Signal, title="Connector", color = _invisible)
+
+// //@version=5
+// strategy("My Strategy", overlay = true)
+
+// // Access the Signal variable from the indicator using request.security
+// SignalFromIndicator = request.security("My Indicator", "D", Signal)
+
+// // Define your strategy logic based on the SignalFromIndicator variable
+// if SignalFromIndicator
+//     strategy.entry("Buy", strategy.long)
+// if not SignalFromIndicator
+//     strategy.close("Buy")
+
+
+// longCondition = ta.crossover(ta.sma(close, 14), ta.sma(close, 28))
+// if (longCondition)
+//     strategy.entry("My Long Entry Id", strategy.long)
+
+// shortCondition = ta.crossunder(ta.sma(close, 14), ta.sma(close, 28))
+// if (shortCondition)
+//     strategy.entry("My Short Entry Id", strategy.short)
+

@@ -62,9 +62,9 @@ direction_logic( _input ) =>
     else
         _dir := 0
 
-trend_break( _xATR, _price, _trigger ) =>
+trend_break( _xATR, _price, _sb_signal ) =>
     _stop = false
-    if _trigger == 1 or _trigger == -1
+    if _sb_signal == 1 or _sb_signal == -1
         _stop := false
     else if high > _xATR and _price < _xATR
         _stop := true
@@ -75,20 +75,20 @@ trend_break( _xATR, _price, _trigger ) =>
 // ~~ INDICATOR LOGIC
 _xATR       = 0.0
 _xATR       := main_logic(_xATR[1])
-_trigger    = direction_logic(_xATR[1])
+_sb_signal    = direction_logic(_xATR[1])
 _price      = ta.ema(close,1)
-_stop_loss  = trend_break(_xATR[1], _price, _trigger)
+_stop_loss  = trend_break(_xATR[1], _price, _sb_signal)
 
 _trend_below_price = _xATR < _price ? true : false
 _trend_above_price = _xATR < _price ? false : true
 
 var _sl_counter = 0
-_sl_counter := _stop_loss ? _sl_counter + 1 : _trigger ? 0 : _sl_counter
+_sl_counter := _stop_loss ? _sl_counter + 1 : _sb_signal ? 0 : _sl_counter
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ STOP LOSS, TREND SWAP
 var bool _trend_swap = false
-if _trigger == 1 or _trigger == -1
+if _sb_signal == 1 or _sb_signal == -1
     _trend_swap := true
 else
     _trend_swap := false
@@ -123,9 +123,9 @@ _invisible_filling = not _print_cross and not _trend_swap
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ PLOTS, SHAPES AND FILLS
-barcolor( (_trigger == 1 or _trigger == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
+barcolor( (_sb_signal == 1 or _sb_signal == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
 
-_atr_color = not TRENDLINES ? na : _trigger == 1 or _trigger == -1 ? _invisible : _invisible_filling ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
+_atr_color = not TRENDLINES ? na : _sb_signal == 1 or _sb_signal == -1 ? _invisible : _invisible_filling ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
 
 _xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
 _price_plot = plot(_price, color = _invisible, linewidth = 1)
@@ -134,8 +134,21 @@ fill(_xATR_plot, _price_plot, not FILLING ? na : _invisible_filling ? _invisible
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ BUY / SELL SIGNALS
-plotshape(_trigger ==  1 and SB_LABEL, location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
-plotshape(_trigger == -1 and SB_LABEL, location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
-plotshape( _sl_counter == 1 and _stop_loss and _trend_below_price and SL_LABEL, location = location.belowbar,  style = shape.xcross, color = SHOW_BELOW , size = size.tiny, text = "Stop Loss", textcolor = SHOW_BELOW)
-plotshape( _sl_counter == 1 and _stop_loss and _trend_above_price and SL_LABEL, location = location.abovebar,  style = shape.xcross,   color = SHOW_ABOVE , size = size.tiny, text = "Stop Loss", textcolor = SHOW_ABOVE)
+
+buy = _sb_signal ==  1 and SB_LABEL ? 1 : 0
+sell = _sb_signal == -1 and SB_LABEL ? 1 : 0
+sl_long = _sl_counter == 1 and _stop_loss and _trend_below_price and SL_LABEL ? 1 : 0
+sl_short = _sl_counter == 1 and _stop_loss and _trend_above_price and SL_LABEL ? 1 : 0
+
+// ~~ STRATEGY CONNECITON
+plotshape(buy,      location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
+plotshape(sell,     location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
+plotshape(sl_long,  location = location.belowbar, style = shape.xcross,    color = SHOW_BELOW ,   size = size.tiny,   text = "Stop Loss (long)", textcolor = SHOW_BELOW)
+plotshape(sl_short, location = location.abovebar, style = shape.xcross,    color = SHOW_ABOVE ,   size = size.tiny,   text = "Stop Loss (short)", textcolor = SHOW_ABOVE)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+
+plot(buy, "Buy Signal", color=color.green)
+plot(sell, "Sell Signal", color=color.red)
+plot(sl_short, "Short Stop Loss", color=color.red)
+plot(sl_long, "Long Stop Loss", color=color.green)
