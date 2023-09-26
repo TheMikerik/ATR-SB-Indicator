@@ -26,6 +26,7 @@
 ## To Do List
 * Merge it with Consolidation Zones indicator
 * Make strategy for this indicator
+* Trend swap does not count as sl - fix needed
 
 ## Credits
 This indicator is inspired by "UT Bot" indicator. My code basically works on it, but I created my version of it. If you want to get some more information about this indicator click [here](https://theforexgeek.com/ut-bot-alerts-indicator/).
