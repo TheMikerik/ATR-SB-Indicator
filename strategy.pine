@@ -1,36 +1,172 @@
+//-------------------------
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © MikerikDev
+// @version=5
+strategy("ATR-SB Algo Strategy", overlay = true)
 
-//@version=5
-strategy("ATR-SB Strategy", overlay=true, margin_long=100, margin_short=100)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-long_signal = request.security("ATR-SB Algo", "1h", buy)
-short_signal = request.security("ATR-SB Algo", "1h", sell)
-sl_short = request.security("ATR-SB Algo", "1h", sl_short)
-sl_long = request.security("ATR-SB Algo", "1h", sl_long)
+// ~~ TIPS
+TIP_risk       = "Possibility to manage the risk you are willing to take. Generally speaking of RISK, the higher is the number you select the less risky the positions will become. For ATR it is exact opposite. The lower is the number you select the less risky the position will become. Default values are set to RISK 10 and ATR 10. Feel free to experiment with it :)"
+TIP_trendlines = "You can either display or hide the thick trendline above the filled area. The trendline is bullish if it is below the price action. In another case, if the trendline is above the price action, it is bearish."
+TIP_sb_candle  = "Sell buy candle is located in the crossover of this indicator's trendline and price action. This option just highlights that candle. This is also the location where the sell/buy signals appear."
+TIP_filling    = "This shows the filled area in between a price action and a highlighted trendline."
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
+// ~~ INPUTS
+RISK = input.int(defval = 6, title = "Risk", minval = 1, group = "Risk Management", inline = "risk mngmn")
+ATR  = input.int (defval = 10, title = "ATR", minval = 1, group = "Risk Management", inline = "risk mngmn", tooltip = TIP_risk)
 
-// Signal = buy ? 1 : sell ? -1 : 0
-// plot(Signal, title="Connector", color = _invisible)
+TRENDLINES = input.bool(defval = true, title="Trend Signals", inline = "trend", group = "Trendlines")
+SHOW_ABOVE = input.color(defval = color.green, title="", inline = "trend", group = "Trendlines")
+SHOW_BELOW = input.color(defval = color.red, title="", inline = "trend", group = "Trendlines", tooltip = TIP_trendlines)
 
-// //@version=5
-// strategy("My Strategy", overlay = true)
+SB_CANDLE       = input.bool( defval = true, title = "SB candle", inline = "sb", group = "Sell/Buy Candle")
+SB_CANDLE_COLOR = input.color(defval = color.white, title = "", inline = "sb", group = "Sell/Buy Candle", tooltip = TIP_sb_candle)
 
-// // Access the Signal variable from the indicator using request.security
-// SignalFromIndicator = request.security("My Indicator", "D", Signal)
+FILLING    = input.bool(defval = true, title="", inline = "fill", group = "Trend Coloring")
+FILL_ABOVE = input.color(defval = color.green, title="Bullish", inline = "fill", group = "Trend Coloring")
+FILL_BELOW = input.color(defval = color.red, title="Bearish", inline = "fill", group = "Trend Coloring", tooltip = TIP_filling)
 
-// // Define your strategy logic based on the SignalFromIndicator variable
-// if SignalFromIndicator
-//     strategy.entry("Buy", strategy.long)
-// if not SignalFromIndicator
-//     strategy.close("Buy")
+SB_LABEL   = input.bool(defval = true, title = "Show labels"    , group = "Labels")
+SL_LABEL   = input.bool(defval = true, title = "Show stop loss" , group = "Labels")
+TREND_SWAP = input.bool(defval = true, title = "Show trend swap", group = "Labels")
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
+// ~~ INITIAL VARIABLES
+_src = close
+_atr = ta.atr(ATR)
+_modified_atr = RISK * _atr
+_invisible = color.rgb(0, 0, 0, 100)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
-// longCondition = ta.crossover(ta.sma(close, 14), ta.sma(close, 28))
-// if (longCondition)
-//     strategy.entry("My Long Entry Id", strategy.long)
+// ~~ FUNCTIONS
+main_logic( _input ) =>
+    _result = 0.0
 
-// shortCondition = ta.crossunder(ta.sma(close, 14), ta.sma(close, 28))
-// if (shortCondition)
-//     strategy.entry("My Short Entry Id", strategy.short)
+    if close > _input and close[1] > _input
+        _result := math.max(_input, close - _modified_atr)
+    else if close < _input and close[1] < _input
+        _result := math.min(_input, close + _modified_atr)
+    else if close > _input
+        _result := close - _modified_atr
+    else
+        _result := close + _modified_atr
 
+direction_logic( _input ) =>
+    _dir = 0
+    if      close[1] < _input and close > _input
+        _dir := 1
+    else if close[1] > _input and close < _input
+        _dir := -1
+    else
+        _dir := 0
+
+trend_break( _xATR, _price, _sb_signal ) =>
+    _stop = false
+    if _sb_signal == 1 or _sb_signal == -1
+        _stop := false
+    else if high > _xATR and _price < _xATR
+        _stop := true
+    else if low < _xATR and _price > _xATR
+        _stop := true
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// ~~ INDICATOR LOGIC
+_xATR       = 0.0
+_xATR       := main_logic(_xATR[1])
+_sb_signal    = direction_logic(_xATR[1])
+_price      = ta.ema(close,1)
+_stop_loss  = trend_break(_xATR[1], _price, _sb_signal)
+
+_trend_below_price = _xATR < _price ? true : false
+_trend_above_price = _xATR < _price ? false : true
+
+var _sl_counter = 0
+_sl_counter := _stop_loss ? _sl_counter + 1 : _sb_signal ? 0 : _sl_counter
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// ~~ STOP LOSS, TREND SWAP
+var bool _trend_swap = false
+if _sb_signal == 1 or _sb_signal == -1
+    _trend_swap := true
+else
+    _trend_swap := false
+
+var bool _sl_triggered   = false
+var bool _trigger_candle = false
+var bool _first_candle   = true
+var bool _print_cross    = true
+
+if _sl_counter == 1 and _stop_loss and _print_cross
+    _print_cross := false
+    _sl_triggered := true
+    _trigger_candle := true
+else if not _print_cross and not _trend_swap
+    _trigger_candle := false
+    _first_candle := false
+else if _trend_swap
+    if _print_cross
+        _trigger_candle := true
+        if _trend_below_price and TREND_SWAP
+            label.new(bar_index, high, "TREND SWAP", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_ABOVE, color = SHOW_ABOVE)
+        else if TREND_SWAP
+            label.new(bar_index, high, "TREND SWAP", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_BELOW, color = SHOW_BELOW)
+    else
+        _sl_triggered := false
+        _first_candle := true
+        _print_cross := true
+else
+    _trigger_candle := false
+
+_invisible_filling = not _print_cross and not _trend_swap
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// ~~ PLOTS, SHAPES AND FILLS
+barcolor( (_sb_signal == 1 or _sb_signal == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
+
+_atr_color = not TRENDLINES ? na : _sb_signal == 1 or _sb_signal == -1 ? _invisible : _invisible_filling ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
+
+_xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
+_price_plot = plot(_price, color = _invisible, linewidth = 1)
+
+fill(_xATR_plot, _price_plot, not FILLING ? na : _invisible_filling ? _invisible : _xATR > _price ? color.new(FILL_BELOW, 75) : color.new(FILL_ABOVE, 75))
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// ~~ BUY / SELL SIGNALS
+
+buy = _sb_signal ==  1 and SB_LABEL ? 1 : 0
+sell = _sb_signal == -1 and SB_LABEL ? 1 : 0
+sl_long = _sl_counter == 1 and _stop_loss and _trend_below_price and SL_LABEL ? 1 : 0
+sl_short = _sl_counter == 1 and _stop_loss and _trend_above_price and SL_LABEL ? 1 : 0
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// STRATEGY ENTRY / CLOSE
+var bool long_entry = false
+var bool short_entry = false
+
+var bool long_close = false
+var bool short_close = false
+
+long_entry := _sb_signal ==  1 ? true : false
+short_entry := _sb_signal ==  -1 ? true : false
+
+long_close := _sl_counter == 1 and _stop_loss and _trend_below_price ? true : false
+short_close := _sl_counter == 1 and _stop_loss and _trend_above_price ? true : false
+
+if (long_close )
+    strategy.close("Long Exit")
+if (short_close)
+    strategy.close("Short Exit")
+if (long_entry)
+    strategy.entry("Long Entry", strategy.long)
+if (short_entry)
+    strategy.entry("Short Entry", strategy.short)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+
+// ~~ STRATEGY CONNECITON
+plotshape(buy,      location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
+plotshape(sell,     location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
+plotshape(sl_long,  location = location.belowbar, style = shape.xcross,    color = SHOW_BELOW ,   size = size.tiny,   text = "Stop Loss (long)", textcolor = SHOW_BELOW)
+plotshape(sl_short, location = location.abovebar, style = shape.xcross,    color = SHOW_ABOVE ,   size = size.tiny,   text = "Stop Loss (short)", textcolor = SHOW_ABOVE)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
