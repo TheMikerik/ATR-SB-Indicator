@@ -4,7 +4,7 @@
 * You can check this indicator out on [this chart](https://www.tradingview.com/chart/dAfm1Hmv/?symbol=BINANCE%3ABTCUSD)
 
 ## Indicator Visualization
-![Showcase](img3.0.png)
+![Showcase](img3.1.png)
 
 ## Change log
 * 1.0 - Initial push
@@ -20,6 +20,7 @@
 * 2.1.1 - Change of some variable names
 * 2.2 - Strategy connected to indicator variables
 * 3.0 - Strategy finished, both indicator and strategy newly released as one set
+* 3.1 - Removed plots from strategy, fixed stop loss exits
 
 ## Released Versions
 * 2.0 - First public release (indicator only)
@@ -28,7 +29,7 @@
 ## To Do List
 - [x] Stop loss plot
 - [x] Make strategy for this indicator
-- [x] Trend swap does not count as sl - fix needed
+- [x] Trend swap does not count as sl
 - [ ] Merge it with Consolidation Zones indicator
 
 ## Credits

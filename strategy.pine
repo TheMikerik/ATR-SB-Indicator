@@ -108,10 +108,6 @@ else if not _print_cross and not _trend_swap
 else if _trend_swap
     if _print_cross
         _trigger_candle := true
-        if _trend_below_price and TREND_SWAP
-            label.new(bar_index, high, "TREND SWAP", yloc = yloc.abovebar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_ABOVE, color = SHOW_ABOVE)
-        else if TREND_SWAP
-            label.new(bar_index, high, "TREND SWAP", yloc = yloc.belowbar, style = label.style_xcross, size = size.tiny,  textcolor = SHOW_BELOW, color = SHOW_BELOW)
     else
         _sl_triggered := false
         _first_candle := true
@@ -120,18 +116,7 @@ else
     _trigger_candle := false
 
 _invisible_filling = not _print_cross and not _trend_swap
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
-
-// ~~ PLOTS, SHAPES AND FILLS
-barcolor( (_sb_signal == 1 or _sb_signal == -1) and SB_CANDLE ? SB_CANDLE_COLOR : na )
-
-_atr_color = not TRENDLINES ? na : _sb_signal == 1 or _sb_signal == -1 ? _invisible : _invisible_filling ? _invisible : _trend_above_price ? SHOW_BELOW : SHOW_ABOVE
-
-_xATR_plot  = plot(_xATR,  color = _atr_color, linewidth = 2)
-_price_plot = plot(_price, color = _invisible, linewidth = 1)
-
-fill(_xATR_plot, _price_plot, not FILLING ? na : _invisible_filling ? _invisible : _xATR > _price ? color.new(FILL_BELOW, 75) : color.new(FILL_ABOVE, 75))
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ BUY / SELL SIGNALS
 
@@ -154,19 +139,12 @@ short_entry := _sb_signal ==  -1 ? true : false
 long_close := _sl_counter == 1 and _stop_loss and _trend_below_price ? true : false
 short_close := _sl_counter == 1 and _stop_loss and _trend_above_price ? true : false
 
-if (long_close )
-    strategy.close("Long Exit")
-if (short_close)
-    strategy.close("Short Exit")
+if (long_close or (_stop_loss and _trend_below_price))
+    strategy.close("Long Entry", "Long SL")
+if (short_close or (_stop_loss and _trend_above_price))
+    strategy.close("Short Entry", "Short SL")
 if (long_entry)
     strategy.entry("Long Entry", strategy.long)
 if (short_entry)
     strategy.entry("Short Entry", strategy.short)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
-
-// ~~ STRATEGY CONNECITON
-plotshape(buy,      location = location.belowbar, style = shape.labelup,   color = color.green, size = size.normal, text = "BUY",  textcolor = color.white)
-plotshape(sell,     location = location.abovebar, style = shape.labeldown, color = color.red,   size = size.normal, text = "SELL", textcolor = color.white)
-plotshape(sl_long,  location = location.belowbar, style = shape.xcross,    color = SHOW_BELOW ,   size = size.tiny,   text = "Stop Loss (long)", textcolor = SHOW_BELOW)
-plotshape(sl_short, location = location.abovebar, style = shape.xcross,    color = SHOW_ABOVE ,   size = size.tiny,   text = "Stop Loss (short)", textcolor = SHOW_ABOVE)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}

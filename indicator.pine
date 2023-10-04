@@ -3,7 +3,7 @@
 
 //@version=5
   indicator("ATR-SB Algo", overlay = true)
-//Last published version: 388
+//Last published version: 406
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 
 // ~~ TIPS
@@ -146,9 +146,3 @@ plotshape(sell,     location = location.abovebar, style = shape.labeldown, color
 plotshape(sl_long,  location = location.belowbar, style = shape.xcross,    color = SHOW_BELOW ,   size = size.tiny,   text = "Stop Loss (long)", textcolor = SHOW_BELOW)
 plotshape(sl_short, location = location.abovebar, style = shape.xcross,    color = SHOW_ABOVE ,   size = size.tiny,   text = "Stop Loss (short)", textcolor = SHOW_ABOVE)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
-
-
-plot(buy, "Buy Signal", color=color.green)
-plot(sell, "Sell Signal", color=color.red)
-plot(sl_short, "Short Stop Loss", color=color.red)
-plot(sl_long, "Long Stop Loss", color=color.green)
