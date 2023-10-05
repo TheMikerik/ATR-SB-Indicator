@@ -4,7 +4,7 @@
 * You can check this indicator out on [this chart](https://www.tradingview.com/chart/dAfm1Hmv/?symbol=BINANCE%3ABTCUSD)
 
 ## Indicator Visualization
-![Showcase](img3.1.png)
+![Showcase](./imgs/img3.1.png)
 
 ## Change log
 * 1.0 - Initial push
