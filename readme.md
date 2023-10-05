@@ -21,6 +21,7 @@
 * 2.2 - Strategy connected to indicator variables
 * 3.0 - Strategy finished, both indicator and strategy newly released as one set
 * 3.1 - Removed plots from strategy, fixed stop loss exits
+* 3.2 - Better folder organization
 
 ## Released Versions
 * 2.0 - First public release (indicator only)
